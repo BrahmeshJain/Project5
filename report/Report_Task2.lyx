@@ -1,0 +1,260 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass scrreprt
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Assignment 5: Event Handle and Signaling – CSE 438/598, Fall 2014
+\end_layout
+
+\begin_layout Author
+Brahmesh Jain S D
+\end_layout
+
+\begin_layout Chapter
+Report on Task 2
+\end_layout
+
+\begin_layout Standard
+As a part of task 2 , we were asked to submit a report on the profiling
+ of the program, illuminating the execution of signal handlers.
+ Following sections discusses on how each part of the task was carried out.
+\end_layout
+
+\begin_layout Standard
+Trace was carriend out by running the command:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+sudo trace-cmd record -e signal taskset -c 0 ./task2.o
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+The thread is running
+\end_layout
+
+\begin_layout Standard
+Main task runs continuosly, and anothter thread is created that sends the
+ SIGUSR1 after a delay of 1 seconds.
+ This signal will inturn call signal handler.
+ This is as shown in the figure:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename ../../../../Pictures/Task2A.png
+	lyxscale 40
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As we can see, signal was generated at 16505.729269 using kill function.
+ This will be sent to kernel.
+ Kernel has delivered to signal handler at 16505.729340.
+ ie after 71us.
+\end_layout
+
+\begin_layout Standard
+After the signal is received, signal handler will set a flag to main task
+ to end the while loop.
+\end_layout
+
+\begin_layout Section
+The thread is runnable (Realtime Priority)
+\end_layout
+
+\begin_layout Standard
+Main task runs continuosly, and anothter thread is created that sends the
+ SIGUSR1 after a delay of 1 seconds.
+ This signal will inturn call signal handler.
+ This is as shown in the figure:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename ../../../../Pictures/Task2B.png
+	lyxscale 40
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As we can see, signal was generated at 16506.930506 using kill function.
+ This will be sent to kernel.
+ Kernel has delivered to signal handler at 16506.930560.
+ ie after 54us.
+\end_layout
+
+\begin_layout Standard
+After the signal is received, signal handler will set a flag to main task
+ to end the while loop.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+The thread is blocked by a semaphore
+\end_layout
+
+\begin_layout Standard
+Main task creates a thread to send a SIGUSR1 after 1sec.
+ In the mean time it blocks itself on waiting for a semaphore.
+ Signal generated after 1second, which will send a kill function call to
+ kernel.
+ This signal is delivered to the main task.
+ After it is delivered, the main task which was blocked by semaphore will
+ become running even before acquiring the semphore.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename ../../../../Pictures/Task2C.png
+	lyxscale 40
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As we can see, signal was generated at 16507.931895 using kill function.
+ This will be sent to kernel.
+ Kernel has delivered to signal handler at 16507.932067.
+ ie after 172us.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+The thread is delayed
+\end_layout
+
+\begin_layout Standard
+Main task creates a thread to send a SIGUSR1 after 1sec.
+ In the mean time it delyas itself by calling nanosleep(10sec).
+ Signal generated after 1second, which will send a kill function call to
+ kernel.
+ This signal is delivered to the main task.
+ After it is delivered, the main task which was in sleep for 10secs will
+ wakeup and becomes running.
+ Nanosleep also send the remaining time which was left for sleep.
+ This time can be used to make task for sleep again for the remaining time.
+ This has been used in task 3.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename ../../../../Pictures/Task2D.png
+	lyxscale 40
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As we can see, signal was generated at 16508.933708 using kill function.
+ This will be sent to kernel.
+ Kernel has delivered to signal handler at 16508.933882.
+ ie after 174us.
+\end_layout
+
+\end_body
+\end_document
